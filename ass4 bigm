@@ -1,0 +1,66 @@
+clear all
+clc
+
+M=1000;
+Variables={'x_1','x_2','s_1','s_2','A_1','A_2','Sol'};
+a=[1 3 -1 0 1 0 3;1 1 0 -1 0 1 2];
+cost=[-3 -5 0 0 -M -M 0];
+s = eye(size(a,1));
+bv=[];
+for j=1:size(s,2)
+    for i=1:size(a,2)
+        if a(:,i)==s(:,j)
+            bv=[bv i];
+        end
+    end
+end
+b=a(:,bv);
+a=b\a;
+zjcj=(cost(bv)*a)-cost;
+zcj=[zjcj;a];
+simpTable =array2table(zcj);
+simpTable.Properties.VariableNames(1:size(zcj,2))=Variables
+RUN=true;
+while RUN
+zc=zjcj(:,1:end-1);
+if any(zc<0);
+    fprintf('BFS is not optimal \n');
+    [entval,pcol]=min(zc);
+    fprintf('Entering column is %d \n',pcol);
+    sol=a(:,end);
+    column=a(:,pcol);
+    if all (column) <=0
+        fprintf('Solution is unbounded');
+        else
+        for i=1:size(column,1)
+            if column(i)>0
+                ratio(i)=sol(i)./column(i);
+            else 
+                ratio(i)=inf;
+            end
+        end
+        [minR,prow]=min(ratio);
+        fprintf('Leaving row is %d \n',prow);
+        bv(prow)=pcol;
+        pkey=a(prow,pcol);
+        a(prow,:)=a(prow,:)./pkey;
+        for i=1:size(a,1)
+            if i~=prow
+                a(i,:)=a(i,:)-a(i,pcol).*a(prow,:);
+            end
+        end
+        zjcj=(cost(bv)*a)-cost;
+        zcj=[zjcj;a];
+        simpTable =array2table(zcj);
+        simpTable.Properties.VariableNames(1:size(zcj,2))=Variables
+    end
+    bfs=zeros(1,size(a,2));
+bfs(bv)=a(:,end);
+bfs(end)=sum(bfs.*cost);
+current_bfs=array2table(bfs);
+current_bfs.Properties.VariableNames(1:size(current_bfs,2))=Variables
+    else
+        RUN=false;
+    fprintf('BFS is optimal \n')
+end
+end
