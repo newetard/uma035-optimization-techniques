@@ -1,2 +1,2 @@
-# otlab
+# ot-lab
 lab codes
